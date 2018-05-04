@@ -22,10 +22,11 @@ def article_to_url(article, site):
 
 
 class Article:
-    def __init__(self, name, url, site):
+    def __init__(self, name, url, site, verbosity=True):
         self.name = name
         self.url = url
         self.site = site
+        self.verbosity = verbosity
 
     def get_hyperlinks(self):
         try:
@@ -51,7 +52,7 @@ class Article:
 
         return links
 
-    def find_path_to_article(self, article, path=[], limit=20, depth=0):
+    def find_path_to_article(self, article, path=[], limit=5, depth=0):
         """
         Try to find path to article by choosing random article from hyperlinks found on page.
 
@@ -63,25 +64,29 @@ class Article:
         :returns: path if the path was found in less then `limit` steps, else None
         :rtype: list or NoneType
         """
+        if len(path) == 0:
+            path.append(self.name)
         links = self.get_hyperlinks()
+        if self.verbosity:
+            print(' -> '.join(path))
 
         if article.url in links:
             return path
 
-        elif depth > limit:
+        elif depth == limit:
             return None
 
         else:
             link = choice(links)
-            name = article_from_url(link, site)
+            name = article_from_url(link, self.site)
 
             while name in path:
                 link = choice(links)
-                name = article_from_url(link, site)
+                name = article_from_url(link, self.site)
 
             next_article = Article(name, link, self.site)
             path.append(name)
-            return next_article.find_path(article, path, depth=depth+1)
+            return next_article.find_path_to_article(article, path, depth=depth+1)
 
     def random_walk(self, steps):
         """
@@ -101,11 +106,10 @@ class Article:
             next_article = Article(name, url, self.site)
             visited.append(url)
 
-            print('{}. step: {} ({})'.format(i, name, url))
+            if self.verbosity:
+                print('{}. step: {} ({})'.format(i, name, url))
             url = None
             while url in visited or url is None:
                 url = choice(next_article.get_hyperlinks())
-
-        print('{} -- {} --> {}'.format(self.name, steps, name))
 
         return url
