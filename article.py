@@ -52,7 +52,7 @@ class Article:
 
         return links
 
-    def find_path_to_article(self, article, path=[], limit=5, depth=0):
+    def find_path_to_article(self, article, path=[], limit=10, depth=0):
         """
         Try to find path to article by choosing random article from hyperlinks found on page.
 
@@ -67,10 +67,12 @@ class Article:
         if len(path) == 0:
             path.append(self.name)
         links = self.get_hyperlinks()
+
         if self.verbosity:
-            print(' -> '.join(path))
+            print('{}.  {}'.format(depth, ' -> '.join(path)))
 
         if article.url in links:
+            path.append(article.name)
             return path
 
         elif depth == limit:
